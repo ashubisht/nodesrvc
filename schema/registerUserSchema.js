@@ -42,16 +42,15 @@ const UserScehma = new mongoose.Schema({
 
 const User = mongoose.model('User', UserScehma ); // 'User' is name of collection in DB while User (without quotes) is to be used in node
 
- function buildUser(userVo){
+function buildUser(userVo){
     return new User({
-         firstName: userVo.firstName,
-         middleName: userVo.middleName,
-         lastName: userVo.lastName,
-         email: userVo.emailAddress,
-         username: userVo.username,
-         password: userVo.password
+        firstName: userVo.firstName,
+        middleName: userVo.middleName,
+        lastName: userVo.lastName,
+        email: userVo.emailAddress,
+        username: userVo.username,
+        password: userVo.password
     });
- }
+}
 
 module.exports.buildUser = buildUser;
-
