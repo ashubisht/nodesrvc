@@ -54,3 +54,4 @@ function buildUser(userVo){
 }
 
 module.exports.buildUser = buildUser;
+module.exports.UserClass = User;

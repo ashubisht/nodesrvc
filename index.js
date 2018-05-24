@@ -10,7 +10,9 @@ mongoose.connect('mongodb://localhost/userMgmt').then(
     ()=>{
         console.log('Connected to Database');
     }
-).catch(err => console.log('Error while connecting to database: ', err.message, ' \nStacktrace: ', err));
+).catch(err => {
+    console.log('Error while connecting to database: ', err.message, ' \nStacktrace: ', err);
+});
 
 app.use(express.json());
 app.use('/register', registration);
