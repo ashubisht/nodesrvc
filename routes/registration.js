@@ -24,9 +24,7 @@ router.post('/user', (req, res)=>{
     }
     console.log('Validation successful');
     console.log('Logger body: ', req.body);
-    const user = userModel.buildUser(req.body);
-    console.log("User prepared: ", user);
-    return saveUser(res, user); //Validate when to use then or return
+    return saveUser(res, req.body   , false); //Validate when to use then or return
 });
 
 //Can be replicated by postman client
@@ -47,13 +45,17 @@ router.post('/user/upload', (req, res)=>{
     busboy.on('file', fileUploadListener);
     busboy.on('finish', ()=>{
         console.log('File uploaded successfully');
-        res.writeHead(200, { 'Connection': 'close' });
-        res.end("File write complete");
+        /* res.writeHead(200, { 'Connection': 'close' });
+        res.end("File write complete"); */
     });
-    
-    return req.pipe(busboy);
+    /* busboy.on('error', ()=>{
+        console.log('Error while uploading file ');
+        return res.status(500).send('Error in uploading file');
+    }); */
 
-    // readFileAndSendToSave(req, res, busboy); //Call this function either here or in event
+    //req.pipe(busboy);
+    
+    return readFileAndSendToSave(req, res, busboy); //Call this function either here or in event
     
 });
 
@@ -64,25 +66,59 @@ function fileUploadListener(fieldname, file, filename, encoding, mimetype){
 }
 
 async function readFileAndSendToSave(req, res, busboy){
-    await req.pipe(busboy);
-    var user = {};
-    await fs.readFile("F:\\fil.txt", 'utf8', function(err, content){ //Ti be loaded from config file
-        console.log(content);
-        user = content;
-    });
-    return saveUser(res, user); //Validate then vs return
-}
+    try{
+        await req.pipe(busboy);
+        await fs.readFile("F:\\fil.txt", 'utf8', function(err, content){ //Ti be loaded from config file
+            console.log(content);
+            return saveUser(res, JSON.parse(content), true);
+        });
+    }catch(err){
+        console.log('Error while piping the file or reading the file: ', err.message);
+        return res.status(500).send('Internal error while saving the user');
+    }
+    
+} 
 
-async function saveUser(res, user){
-    await hash.hashPassword(user.password).then((result)=>{
-        console.log('Result: '+ result);
-        user.password = result;
-    }).catch(err => {
-        console.log('Error in hashing the password. ', err.message);
-        return res.status(500).send('Internal error occurred while saving the user');
-    });
+async function saveUser(res, jsonUser, isUpload){
+    
+    var user = [];
 
-    persistUser.createUser(user).then(
+    console.log('Value of isUpload ', isUpload);
+
+    if(isUpload && isUpload===true){
+        console.log('Is upload is true and now will push element to array');
+        var multiUser = [];
+        jsonUser.forEach(element => {
+            multiUser.push(element);
+        });
+        user = multiUser;
+    }else{
+        console.log('Is upload is false and now will push element to array');
+        const singleUser = userModel.buildUser(jsonUser);
+        console.log("User prepared: ", singleUser.username);
+        user.push(singleUser);
+    }
+
+
+    console.log('Registration.js user array created: ' , user);
+
+    for(var element of user){
+        console.log('In registration js, invoking hash password utility for element: ', element.password);
+        await hash.hashPassword(element.password).then((result)=>{
+            console.log('Result: '+ result);
+            element.password = result;
+        }).catch(err => {
+            console.log('Error in hashing the password. ', err.message);
+            return res.status(500).send('Internal error occurred while saving the user');
+        });
+    }
+
+    if(isUpload !==true){
+        console.log('Is upload is not true, convering array to object');
+        user = user.pop(); //Replace array with json object
+    }
+
+    persistUser.createUser(user, isUpload).then(
         ()=>{
                 console.log('Success received from mongo save');
                 // return res.status(200).send('Successfully saved user '+ _.pick(user,['username', 'email', 'firstName',
@@ -94,9 +130,7 @@ async function saveUser(res, user){
             console.log('Error received from aync save method while saving users: '+ err);
             return res.status(400).send('Error in saving user');
         }
-    );
-
-    console.log('Password hashed sucessfully. New user object: '+ user);    
+    );   
 }
 
 

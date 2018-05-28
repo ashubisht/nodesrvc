@@ -40,6 +40,8 @@ const UserScehma = new mongoose.Schema({
     registered_date: {type: Date, default: Date.now}
 });
 
+UserScehma.set('strict', true);
+
 const User = mongoose.model('User', UserScehma ); // 'User' is name of collection in DB while User (without quotes) is to be used in node
 
 function buildUser(userVo){
