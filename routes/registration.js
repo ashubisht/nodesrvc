@@ -89,7 +89,7 @@ async function saveUser(res, jsonUser, isUpload){
         console.log('Is upload is true and now will push element to array');
         var multiUser = [];
         jsonUser.forEach(element => {
-            multiUser.push(element);
+            multiUser.push(userModel.buildUser(element));
         });
         user = multiUser;
     }else{
