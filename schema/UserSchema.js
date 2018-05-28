@@ -38,6 +38,8 @@ const UserScehma = new mongoose.Schema({
         minlength: 5 //maxlength not specified as passwords may become big after hashing
     },
     registered_date: {type: Date, default: Date.now}
+}, {
+    strict: true
 });
 
 UserScehma.set('strict', true);
