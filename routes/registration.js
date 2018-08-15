@@ -60,6 +60,9 @@ router.post('/user/upload', (req, res)=>{
 });
 
 function fileUploadListener(fieldname, file, filename, encoding, mimetype){
+    if(filename==undefined){
+        return;
+    }
     var saveTo = "F:\\"+ filename; // To be present in config file
     console.log('Uploading to ', saveTo);
     file.pipe(fs.createWriteStream(saveTo));
